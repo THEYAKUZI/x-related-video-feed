@@ -339,7 +339,7 @@
   width: 280px;
   padding: 16px;
   border-radius: 12px;
-  background: rgba(22, 24, 28, 0.96);
+  background: #16181c;
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
   z-index: 3;
@@ -350,6 +350,17 @@
 .xrf-help dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 13px; }
 .xrf-help dt { margin: 0; }
 .xrf-help dd { margin: 0; color: var(--xrf-dim); }
+.xrf-support {
+  display: block;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--xrf-like);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.xrf-support:hover { text-decoration: underline; }
 .xrf-help kbd {
   display: inline-block;
   min-width: 22px;

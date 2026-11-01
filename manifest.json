@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "X Related Video Feed",
-  "version": "1.0.0",
-  "description": "Brings the X app's 'swipe up for more' related-video feed to x.com on desktop.",
+  "name": "Related Video Feed for X",
+  "version": "1.1.0",
+  "description": "Brings the X app's 'swipe up for more' related-video feed to x.com on desktop. Unofficial.",
+  "homepage_url": "https://github.com/THEYAKUZI/x-related-video-feed",
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",

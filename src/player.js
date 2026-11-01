@@ -3,6 +3,7 @@
   'use strict';
 
   const API = () => globalThis.XRF_API;
+  const SUPPORT_URL = 'https://github.com/sponsors/THEYAKUZI';
 
   const PATHS = {
     close: 'M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z',
@@ -99,6 +100,10 @@
           ['← / →', 'Back / forward 5s'], ['M', 'Mute'], ['L', 'Like'], ['B', 'Bookmark'],
           ['S', 'More like this video'], ['O', 'Open post'], ['A', 'Auto-next on/off'], ['F', 'Fullscreen'], ['Esc', 'Close'],
         ].flatMap(([k, d]) => [el('dt', {}, k.split(' / ').flatMap((x, i) => [i ? ' ' : null, el('kbd', { text: x })])), el('dd', { text: d })])),
+        el('a', {
+          class: 'xrf-support', href: SUPPORT_URL, target: '_blank', rel: 'noopener',
+          text: '♥ Enjoying it? Support the project',
+        }),
       ]);
       this.upBtn = el('button', { class: 'xrf-iconbtn', title: 'Previous (↑)', html: icon('up'), onclick: () => this.go(this.active - 1) });
       this.downBtn = el('button', { class: 'xrf-iconbtn', title: 'Next (↓)', html: icon('down'), onclick: () => this.go(this.active + 1) });

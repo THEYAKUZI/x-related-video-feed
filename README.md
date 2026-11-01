@@ -1,6 +1,6 @@
-# X Related Video Feed
+# Related Video Feed for X
 
-A browser extension that brings the X (Twitter) app's **"swipe up for more"** video feed to x.com on desktop.
+A free browser extension that brings the X (Twitter) app's **"swipe up for more"** video feed to x.com on desktop.
 
 On your phone, you can open a video and swipe up to get an endless feed of related videos.
 The desktop site doesn't have that. This extension adds it: pick any video (for example one from
@@ -66,6 +66,16 @@ extension's card in `chrome://extensions`.
 - `src/player.js` + `src/player.css`: the full-screen player.
 - `src/content.js`: adds the Related button to posts.
 - `background.js`: toolbar icon / keyboard shortcut.
+
+## Support the project
+
+It's free and always will be. If it's useful to you and you want to say thanks, you can
+[sponsor me on GitHub](https://github.com/sponsors/THEYAKUZI). Bug reports and ideas are welcome
+too: [open an issue](../../issues).
+
+## Privacy
+
+Collects nothing. Everything happens between your browser and x.com. See [PRIVACY.md](PRIVACY.md).
 
 ## License
 
