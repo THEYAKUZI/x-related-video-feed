@@ -1,0 +1,402 @@
+/* Related-video feed overlay. Everything is scoped under .xrf-* so it can't clash with x.com. */
+
+.xrf-root {
+  --xrf-text: #e7e9ea;
+  --xrf-dim: #a2a7ad;
+  --xrf-accent: #1d9bf0;
+  --xrf-like: #f91880;
+  --xrf-chip: rgba(255, 255, 255, 0.12);
+  --xrf-chip-hover: rgba(255, 255, 255, 0.22);
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  background: #000;
+  color: var(--xrf-text);
+  font: 15px/1.35 TwitterChirp, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: contain;
+}
+.xrf-root *, .xrf-root *::before, .xrf-root *::after { box-sizing: border-box; }
+.xrf-root button {
+  font: inherit;
+  color: inherit;
+  margin: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.xrf-root button:focus-visible { outline: 2px solid var(--xrf-accent); outline-offset: 2px; }
+.xrf-root svg { display: block; width: 100%; height: 100%; fill: currentColor; }
+
+.xrf-scroller {
+  position: absolute;
+  inset: 0;
+  overflow-y: scroll;
+  overflow-anchor: none; /* keep the view still while new videos are added */
+  scroll-snap-type: y mandatory;
+  scrollbar-width: none;
+}
+.xrf-scroller::-webkit-scrollbar { display: none; }
+
+/* One video per screen */
+.xrf-slide {
+  position: relative;
+  height: 100%;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+.xrf-stage {
+  --ar: 0.5625;
+  position: relative;
+  aspect-ratio: var(--ar);
+  height: min(100%, calc((100vw - 200px) / var(--ar)));
+  max-width: calc(100vw - 200px);
+  background: #000;
+  overflow: hidden;
+  border-radius: 6px;
+}
+.xrf-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+.xrf-tap {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.xrf-paused-icon {
+  width: 72px;
+  height: 72px;
+  padding: 18px 16px 18px 22px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  transform: scale(0.85);
+  transition: opacity 0.15s, transform 0.15s;
+  pointer-events: none;
+}
+.xrf-slide.xrf-active.xrf-paused .xrf-paused-icon { opacity: 1; transform: scale(1); }
+
+.xrf-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.6);
+  font-size: 12px;
+  font-weight: 700;
+  pointer-events: none;
+}
+.xrf-unavailable {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.75);
+  color: var(--xrf-dim);
+}
+.xrf-slide.xrf-broken .xrf-unavailable { display: flex; }
+
+/* Author + caption, bottom-left over the video */
+.xrf-info {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 48px 16px 18px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0));
+  pointer-events: none;
+}
+.xrf-info > * { pointer-events: auto; }
+.xrf-user {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  color: var(--xrf-text);
+  text-decoration: none;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+.xrf-user:hover .xrf-name { text-decoration: underline; }
+.xrf-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex: none;
+  background: #333;
+  object-fit: cover;
+}
+.xrf-name { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.xrf-handle { color: #c4c8cc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.xrf-text {
+  margin: 6px 0 0;
+  max-width: 560px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  cursor: pointer;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+.xrf-text.xrf-expanded { -webkit-line-clamp: unset; max-height: 40vh; overflow-y: auto; }
+.xrf-text:empty { display: none; }
+
+/* Seek bar along the bottom edge of the video */
+.xrf-progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: flex-end;
+}
+.xrf-progress-track { width: 100%; height: 3px; background: rgba(255, 255, 255, 0.25); transition: height 0.1s; }
+.xrf-progress:hover .xrf-progress-track { height: 6px; }
+.xrf-progress-fill { height: 100%; width: 0; background: var(--xrf-accent); }
+
+/* Action buttons beside the video */
+.xrf-rail {
+  align-self: flex-end;
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 64px;
+}
+.xrf-act {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--xrf-text);
+}
+.xrf-act-icon {
+  width: 48px;
+  height: 48px;
+  padding: 12px;
+  border-radius: 50%;
+  background: var(--xrf-chip);
+  transition: background 0.15s, color 0.15s, transform 0.1s;
+}
+.xrf-act:hover .xrf-act-icon { background: var(--xrf-chip-hover); }
+.xrf-act:active .xrf-act-icon { transform: scale(0.92); }
+.xrf-act.xrf-on[data-act="like"] { color: var(--xrf-like); }
+.xrf-act.xrf-on[data-act="bookmark"] { color: var(--xrf-accent); }
+.xrf-act-label { color: var(--xrf-dim); font-variant-numeric: tabular-nums; }
+.xrf-act.xrf-on .xrf-act-label { color: inherit; }
+
+/* Top bar */
+.xrf-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  pointer-events: none;
+  z-index: 2;
+}
+.xrf-top > * { pointer-events: auto; }
+.xrf-iconbtn {
+  width: 40px;
+  height: 40px;
+  padding: 10px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5) !important;
+  flex: none;
+}
+.xrf-iconbtn:hover { background: rgba(60, 60, 60, 0.7) !important; }
+.xrf-counter {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.5);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--xrf-dim);
+}
+.xrf-spacer { flex: 1; pointer-events: none; }
+.xrf-pill {
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.5) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  font-size: 13px !important;
+  font-weight: 700;
+}
+.xrf-pill:hover { background: rgba(60, 60, 60, 0.7) !important; }
+.xrf-pill.xrf-on { border-color: var(--xrf-accent) !important; color: var(--xrf-accent) !important; }
+
+/* Up/down arrows on the right edge */
+.xrf-nav {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 2;
+}
+.xrf-nav .xrf-iconbtn { background: var(--xrf-chip) !important; }
+.xrf-nav .xrf-iconbtn:hover { background: var(--xrf-chip-hover) !important; }
+.xrf-nav .xrf-iconbtn:disabled { opacity: 0.3; cursor: default; }
+
+/* Loading, end and error cards */
+.xrf-card {
+  position: relative;
+  height: 100%;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px;
+  text-align: center;
+  color: var(--xrf-dim);
+}
+.xrf-card h2 { margin: 0; font-size: 20px; color: var(--xrf-text); }
+.xrf-card p { margin: 0; max-width: 460px; }
+.xrf-card .xrf-pill { color: var(--xrf-text); }
+.xrf-spinner {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.15);
+  border-top-color: var(--xrf-accent);
+  animation: xrf-spin 0.8s linear infinite;
+}
+@keyframes xrf-spin { to { transform: rotate(360deg); } }
+
+.xrf-loading-more {
+  position: absolute;
+  left: 50%;
+  bottom: 20px;
+  transform: translateX(-50%);
+  display: none;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.6);
+  font-size: 13px;
+  color: var(--xrf-dim);
+  z-index: 2;
+  pointer-events: none;
+}
+.xrf-loading-more .xrf-spinner { width: 14px; height: 14px; border-width: 2px; }
+.xrf-root.xrf-is-loading .xrf-loading-more { display: flex; }
+
+/* Toast + help */
+.xrf-toast {
+  position: fixed;
+  left: 50%;
+  top: 68px;
+  transform: translate(-50%, -12px);
+  max-width: min(520px, calc(100vw - 32px));
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: #1d9bf0;
+  color: #fff;
+  font: 600 14px/1.3 TwitterChirp, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none;
+  z-index: 2147483001;
+}
+.xrf-toast.xrf-show { opacity: 1; transform: translate(-50%, 0); }
+.xrf-toast.xrf-error { background: #f4212e; }
+
+.xrf-help {
+  position: absolute;
+  top: 64px;
+  right: 16px;
+  width: 280px;
+  padding: 16px;
+  border-radius: 12px;
+  background: rgba(22, 24, 28, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+  z-index: 3;
+  display: none;
+}
+.xrf-help.xrf-show { display: block; }
+.xrf-help h3 { margin: 0 0 10px; font-size: 15px; }
+.xrf-help dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 13px; }
+.xrf-help dt { margin: 0; }
+.xrf-help dd { margin: 0; color: var(--xrf-dim); }
+.xrf-help kbd {
+  display: inline-block;
+  min-width: 22px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  font: 12px/1.5 ui-monospace, Consolas, monospace;
+  text-align: center;
+  color: var(--xrf-text);
+}
+
+/* Narrow windows: actions float over the video instead of beside it */
+@media (max-width: 700px) {
+  .xrf-stage { height: 100%; max-width: 100vw; width: 100vw; aspect-ratio: auto; border-radius: 0; }
+  .xrf-rail { position: absolute; right: 8px; bottom: 96px; margin: 0; z-index: 1; }
+  .xrf-info { padding-right: 84px; }
+  .xrf-nav { display: none; }
+}
+
+/* "Related" button injected into each video post's action bar */
+.xrf-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 32px;
+  margin: 0 0 0 4px;
+  padding: 0 10px 0 8px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent !important;
+  color: #1d9bf0 !important;
+  font: 700 13px/1 TwitterChirp, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
+  flex: none;
+  align-self: center;
+}
+.xrf-btn:hover { background: rgba(29, 155, 240, 0.12) !important; }
+.xrf-btn svg { width: 18px; height: 18px; fill: currentColor; display: block; }
+.xrf-btn-wrap { display: flex; align-items: center; justify-content: flex-end; flex: none; }
+.xrf-btn.xrf-btn-overlay {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 5;
+  background: rgba(0, 0, 0, 0.65) !important;
+  color: #fff !important;
+}
+.xrf-btn.xrf-btn-overlay:hover { background: rgba(0, 0, 0, 0.85) !important; }

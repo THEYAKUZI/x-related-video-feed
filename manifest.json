@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "X Related Video Feed",
+  "version": "1.0.0",
+  "description": "Brings the X app's 'swipe up for more' related-video feed to x.com on desktop.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_title": "Open the related-video feed for this post (Alt+Shift+V)",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png"
+    }
+  },
+  "commands": {
+    "_execute_action": {
+      "suggested_key": { "default": "Alt+Shift+V" },
+      "description": "Open the related-video feed for the current post"
+    }
+  },
+  "background": { "service_worker": "background.js" },
+  "permissions": ["storage", "activeTab"],
+  "content_scripts": [
+    {
+      "matches": ["https://x.com/*", "https://www.x.com/*"],
+      "js": ["src/xapi.js", "src/player.js", "src/content.js"],
+      "css": ["src/player.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}
